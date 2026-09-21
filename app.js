@@ -57,6 +57,36 @@
     );
 
   const MAXDUR = 1440 - 5;
+
+  const HHMM = /^([01]\d|2[0-3])[0-5]\d$/;
+  class FormatError extends Error {}
+  function parseHHMM(v, field, title) {
+    if (typeof v !== "string" || !HHMM.test(v))
+      throw new FormatError(
+        `"${title}" has ${field} time ${JSON.stringify(v)}. ` +
+          `Use four digits on the 24-hour clock, like "0930" or "2215".`,
+      );
+    return Number(v.slice(0, 2)) * 60 + Number(v.slice(2));
+  }
+  function toHHMM(m) {
+    m = ((m % 1440) + 1440) % 1440;
+    return (
+      String(Math.floor(m / 60)).padStart(2, "0") +
+      String(m % 60).padStart(2, "0")
+    );
+  }
+  function serialize() {
+    return {
+      app: "weekplot",
+      title: state.title,
+      settings: state.settings,
+      events: state.events.map((ev) => ({
+        ...ev,
+        start: toHHMM(ev.start),
+        end: toHHMM(ev.end),
+      })),
+    };
+  }
   const uid = () => Math.random().toString(36).slice(2, 10); // NOSONAR
 
   const SAMPLE_URL = "sample-week.json";
@@ -122,14 +152,20 @@
     s.h24 = !!s.h24;
     s.weekends = s.weekends !== false;
     const events = o.events.map((ev) => {
-      const start = clampInt(ev.start, 0, 1439, 540),
-        end = clampInt(ev.end, 1, 2880, 600);
+      const name = String(ev.title || "Untitled").slice(0, 80);
+      const start = parseHHMM(ev.start, "start", name);
+      let end = parseHHMM(ev.end, "end", name);
+      if (end === start)
+        throw new FormatError(
+          `"${name}" starts and ends at ${ev.start}. Give it a different end time.`,
+        );
+      if (end < start) end += 1440;
       const days = Array.isArray(ev.days)
         ? [...new Set(ev.days.map(Number).filter((d) => d >= 0 && d <= 6))]
         : [];
       return {
         id: String(ev.id || uid()),
-        title: String(ev.title || "Untitled").slice(0, 80),
+        title: name,
         days: days.length ? days : [0],
         start,
         end: Math.min(Math.max(end, start + 5), start + MAXDUR),
@@ -154,7 +190,7 @@
     clearTimeout(saveT);
     saveT = setTimeout(() => {
       try {
-        localStorage.setItem(KEY, JSON.stringify(state));
+        localStorage.setItem(KEY, JSON.stringify(serialize()));
       } catch (e) {}
     }, 250);
   }
@@ -969,7 +1005,9 @@
     } catch (err) {
       console.warn("Import failed:", err);
       toast(
-        "That file isn't a Weekplot backup. Choose a .json file exported from here.",
+        err instanceof FormatError
+          ? "Couldn't import: " + err.message
+          : "That file isn't a Weekplot backup. Choose a .json file exported from here.",
       );
     }
   });
@@ -995,17 +1033,7 @@
 
   async function doExport(kind) {
     if (kind === "json") {
-      const txt = JSON.stringify(
-        {
-          app: "weekplot",
-          version: 1,
-          title: state.title,
-          settings: state.settings,
-          events: state.events,
-        },
-        null,
-        2,
-      );
+      const txt = JSON.stringify(serialize(), null, 2);
       download(slug() + ".json", txt, "application/json");
     } else if (kind === "png") {
       toast("Drawing image…");
