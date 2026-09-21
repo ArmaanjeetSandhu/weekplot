@@ -1,0 +1,115 @@
+{
+  "app": "weekplot",
+  "version": 1,
+  "title": "Fall semester",
+  "events": [
+    {
+      "title": "Run",
+      "days": [1, 3],
+      "start": 435,
+      "end": 480,
+      "color": "coral",
+      "icon": "🏃",
+      "note": "Riverside loop"
+    },
+    {
+      "title": "Calculus II",
+      "days": [0, 2, 4],
+      "start": 540,
+      "end": 600,
+      "color": "sky",
+      "icon": "📚",
+      "note": "Hall B 204"
+    },
+    {
+      "title": "Office hours",
+      "days": [0],
+      "start": 600,
+      "end": 660,
+      "color": "lilac",
+      "icon": "✏️",
+      "note": "Prof. Ortiz"
+    },
+    {
+      "title": "Intro to Psychology",
+      "days": [1, 3],
+      "start": 630,
+      "end": 705,
+      "color": "sky",
+      "icon": "📚",
+      "note": "Room 12"
+    },
+    {
+      "title": "Coffee with Sam",
+      "days": [4],
+      "start": 660,
+      "end": 720,
+      "color": "sand",
+      "icon": "☕",
+      "note": ""
+    },
+    {
+      "title": "Lunch",
+      "days": [0, 1, 2, 3, 4],
+      "start": 750,
+      "end": 795,
+      "color": "mint",
+      "icon": "🍳",
+      "note": ""
+    },
+    {
+      "title": "Chemistry lab",
+      "days": [1],
+      "start": 810,
+      "end": 960,
+      "color": "mint",
+      "icon": "🧪",
+      "note": "Lab 3"
+    },
+    {
+      "title": "Study group",
+      "days": [2],
+      "start": 900,
+      "end": 990,
+      "color": "lilac",
+      "icon": "✏️",
+      "note": "Library, 2nd floor"
+    },
+    {
+      "title": "Café shift",
+      "days": [3, 5],
+      "start": 960,
+      "end": 1200,
+      "color": "slate",
+      "icon": "💼",
+      "note": ""
+    },
+    {
+      "title": "Groceries",
+      "days": [5],
+      "start": 600,
+      "end": 660,
+      "color": "lemon",
+      "icon": "🛒",
+      "note": ""
+    },
+    {
+      "title": "Yoga",
+      "days": [6],
+      "start": 570,
+      "end": 630,
+      "color": "coral",
+      "icon": "🧘",
+      "note": ""
+    },
+    {
+      "title": "Family dinner",
+      "days": [6],
+      "start": 1080,
+      "end": 1170,
+      "color": "rose",
+      "icon": "👪",
+      "note": ""
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Weekplot Scheduler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <main id="app">
+        <div class="bar" role="toolbar" aria-label="Schedule tools">
+          <div class="grow">
+            <input
+              class="title-in"
+              id="titleIn"
+              aria-label="Schedule name"
+              maxlength="80"
+            />
+          </div>
+          <button class="btn primary" id="addBtn">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M8 3v10M3 8h10" /></svg
+            >Add event
+          </button>
+          <fieldset class="seg" aria-label="View">
+            <button id="vWeek" aria-pressed="true">Week</button>
+            <button id="vDay" aria-pressed="false">Day</button>
+          </fieldset>
+          <button class="btn" id="importBtn" aria-label="Import">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M8 10V2M5 5l3-3 3 3M2 10v3h12v-3" /></svg
+            ><span class="lbl-sm-hide">Import</span>
+          </button>
+          <div class="menu-wrap">
+            <button
+              class="btn"
+              id="exportBtn"
+              aria-label="Save and export"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M8 2v8M5 7l3 3 3-3M2 10v3h12v-3" /></svg
+              ><span class="lbl-sm-hide">Save &amp; export</span>
+            </button>
+            <div class="menu" id="exportMenu" role="menu">
+              <button role="menuitem" data-x="png">
+                Image (PNG)<small>For your phone or the fridge</small>
+              </button>
+              <button role="menuitem" data-x="json">
+                Backup file (JSON)<small>Import it later to keep editing</small>
+              </button>
+            </div>
+          </div>
+          <button class="btn" id="settingsBtn" aria-label="Settings">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <path d="M2 4h7M12 4h2M2 12h2M7 12h7" />
+              <circle cx="10.5" cy="4" r="1.6" />
+              <circle cx="5.5" cy="12" r="1.6" /></svg
+            ><span class="lbl-sm-hide">Settings</span>
+          </button>
+          <input
+            type="file"
+            id="fileIn"
+            aria-label="Backup file to import"
+            accept=".json,application/json"
+            hidden
+          />
+        </div>
+        <div class="board" id="board">
+          <fieldset class="daytabs" id="daytabs" aria-label="Day"></fieldset>
+          <div class="scroll"><div class="grid" id="grid"></div></div>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="modal" id="evDlg" aria-labelledby="evH">
+      <h2 id="evH">New event</h2>
+      <div class="field">
+        <label for="fTitle">Name</label
+        ><input
+          class="inp"
+          id="fTitle"
+          maxlength="80"
+          placeholder="e.g. Biology lecture"
+        />
+      </div>
+      <fieldset class="field">
+        <legend class="lbl">Days</legend>
+        <div class="chips" id="fDays"></div>
+      </fieldset>
+      <div class="row2 field">
+        <div>
+          <label for="fStart">Starts</label
+          ><select class="inp" id="fStart"></select>
+        </div>
+        <div>
+          <label for="fEnd">Ends</label
+          ><select class="inp" id="fEnd"></select>
+        </div>
+      </div>
+      <p class="hint" id="fOvernight" hidden>
+        Runs past midnight and ends the next day. Pick the days it starts on.
+      </p>
+      <div class="field">
+        <label for="fNote">Place or note</label
+        ><input class="inp" id="fNote" maxlength="120" placeholder="Optional" />
+      </div>
+      <fieldset class="field">
+        <legend class="lbl">Color</legend>
+        <div class="swatches" id="fColor"></div>
+      </fieldset>
+      <fieldset class="field">
+        <legend class="lbl">Icon</legend>
+        <div class="icons" id="fIcon"></div>
+      </fieldset>
+      <div class="err" id="fErr" role="alert"></div>
+      <div class="actions">
+        <div class="left">
+          <button class="btn danger" id="fDel">Delete</button
+          ><button class="btn" id="fDup">Duplicate</button>
+        </div>
+        <button class="btn" id="fCancel">Cancel</button>
+        <button class="btn primary" id="fSave">Save event</button>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="setDlg" aria-labelledby="setH">
+      <h2 id="setH">Settings</h2>
+      <div class="row2 field">
+        <div>
+          <label for="sStart">Day starts at</label
+          ><select class="inp" id="sStart"></select>
+        </div>
+        <div>
+          <label for="sEnd">Day ends at</label
+          ><select class="inp" id="sEnd"></select>
+        </div>
+      </div>
+      <div class="toggle">
+        <div>Time format</div>
+        <fieldset class="seg" aria-label="Time format">
+          <button id="s12">12h</button><button id="s24">24h</button>
+        </fieldset>
+      </div>
+      <div class="toggle">
+        <div>Week starts on</div>
+        <fieldset class="seg" aria-label="Week starts on">
+          <button id="sMon">Monday</button><button id="sSun">Sunday</button>
+        </fieldset>
+      </div>
+      <div class="toggle">
+        <div>
+          Weekends
+          <div class="d">Show Saturday and Sunday</div>
+        </div>
+        <fieldset class="seg" aria-label="Weekends">
+          <button id="sWkOn">Show</button><button id="sWkOff">Hide</button>
+        </fieldset>
+      </div>
+      <div class="toggle">
+        <div>
+          <label for="sLen">Click adds</label>
+          <div class="d" id="sLenD">
+            Length of a new event from a single click
+          </div>
+        </div>
+        <select
+          class="inp"
+          id="sLen"
+          aria-describedby="sLenD"
+          style="width: auto"
+        >
+          <option value="30">30 min</option>
+          <option value="60">1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+        </select>
+      </div>
+      <div class="toggle">
+        <div>
+          <label for="sSnap">Snap to</label>
+          <div class="d" id="sSnapD">Step used when clicking and dragging</div>
+        </div>
+        <select
+          class="inp"
+          id="sSnap"
+          aria-describedby="sSnapD"
+          style="width: auto"
+        >
+          <option value="5">5 min</option>
+          <option value="15">15 min</option>
+          <option value="30">30 min</option>
+          <option value="60">1 hour</option>
+        </select>
+      </div>
+      <div class="toggle">
+        <div>Theme</div>
+        <fieldset class="seg" aria-label="Theme">
+          <button id="thAuto">Auto</button><button id="thLight">Light</button
+          ><button id="thDark">Dark</button>
+        </fieldset>
+      </div>
+      <div class="actions" style="margin-top: 14px">
+        <div class="left">
+          <button class="btn danger" id="sClear">Clear all events</button
+          ><button class="btn" id="sSample">Load sample week</button>
+        </div>
+        <button class="btn primary" id="sDone">Done</button>
+      </div>
+    </dialog>
+
+    <output class="toast" id="toast"></output>
+  </body>
+</html>
