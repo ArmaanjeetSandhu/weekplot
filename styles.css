@@ -691,4 +691,10 @@ legend {
   .nowline {
     display: none;
   }
+  .ev,
+  .ev:hover {
+    border: 0.5px solid var(--c);
+    border-left: 4px solid var(--c);
+    box-shadow: none;
+  }
 }
