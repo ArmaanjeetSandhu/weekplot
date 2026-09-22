@@ -84,9 +84,6 @@ select {
   font: inherit;
   color: inherit;
 }
-button {
-  cursor: pointer;
-}
 fieldset {
   min-width: 0;
   margin: 0;
@@ -322,7 +319,6 @@ legend {
   background-size:
     100% var(--hh),
     100% calc(var(--hh) / 2);
-  cursor: cell;
 }
 .col.today {
   background-color: color-mix(in srgb, var(--accent) 4%, transparent);
