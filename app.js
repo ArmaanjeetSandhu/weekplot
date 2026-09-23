@@ -40,6 +40,12 @@ const ICONS = [
   "⚽",
   "😴",
 ];
+const IS_APPLE = /Mac|iPhone|iPad|iPod/i.test(
+  navigator.userAgentData?.platform ||
+    navigator.platform ||
+    navigator.userAgent,
+);
+
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s).replace(
@@ -290,7 +296,25 @@ function hh() {
   );
 }
 
+function evSelector(k) {
+  return `.ev[data-id="${CSS.escape(k.id)}"][data-day="${k.day}"][data-off="${k.off}"]`;
+}
+function evKey(el) {
+  return { id: el.dataset.id, day: el.dataset.day, off: el.dataset.off };
+}
+function focusedEv() {
+  const a = document.activeElement;
+  return a?.matches?.("#grid .ev[data-id]") ? a : null;
+}
+
 function render() {
+  const f = focusedEv(),
+    keep = f ? evKey(f) : null;
+  renderGrid();
+  if (keep) $("grid").querySelector(evSelector(keep))?.focus();
+}
+
+function renderGrid() {
   const S = state.settings,
     grid = $("grid"),
     board = $("board");
@@ -364,7 +388,7 @@ function render() {
           ? ""
           : '<span class="rz rz-top" aria-hidden="true"></span>';
       html +=
-        `<button class="ev${cls}" data-id="${esc(ev.id)}" data-day="${d}" data-off="${it.off}" style="${style}" aria-label="${label}">` +
+        `<button class="ev${cls}" data-id="${esc(ev.id)}" data-day="${d}" data-off="${it.off}" style="${style}" aria-label="${label}" aria-keyshortcuts="${IS_APPLE ? "Backspace Delete" : "Delete"}">` +
         resizeTop +
         `<span class="t">${icon}${esc(ev.title)}</span>` +
         `<span class="h">${time}</span>` +
@@ -1303,6 +1327,63 @@ $("thAuto").addEventListener("click", () => setTheme("auto"));
 $("thLight").addEventListener("click", () => setTheme("light"));
 $("thDark").addEventListener("click", () => setTheme("dark"));
 applyTheme(getTheme());
+$("thD").textContent =
+  String.raw`Press ${IS_APPLE ? "⌘" : "Ctrl +"} \ to switch`;
+
+function effectiveTheme() {
+  const t = getTheme();
+  if (t !== "auto") return t;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function toggleTheme() {
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  setTheme(next);
+  toast(next === "dark" ? "Dark mode" : "Light mode");
+}
+
+function deleteEvent(el) {
+  const ev = state.events.find((x) => x.id === el.dataset.id);
+  if (!ev) return;
+  const all = [...$("grid").querySelectorAll(".ev[data-id]")],
+    at = all.indexOf(el),
+    other = (x) => x.dataset.id !== ev.id;
+  const next =
+    all.slice(at + 1).find(other) || all.slice(0, at).reverse().find(other);
+  const nextKey = next ? evKey(next) : null;
+
+  const i = state.events.indexOf(ev);
+  state.events.splice(i, 1);
+  save();
+  render();
+  if (nextKey) $("grid").querySelector(evSelector(nextKey))?.focus();
+  undoable(`Deleted ${ev.title}`, () => {
+    state.events.splice(i, 0, ev);
+    save();
+    render();
+  });
+}
+
+document.addEventListener("keydown", (e) => {
+  const themeMod = IS_APPLE ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey;
+  if (themeMod && !e.altKey && (e.key === "\\" || e.code === "Backslash")) {
+    e.preventDefault();
+    toggleTheme();
+    return;
+  }
+  if (
+    (e.key === "Delete" || (IS_APPLE && e.key === "Backspace")) &&
+    !e.ctrlKey &&
+    !e.altKey &&
+    !e.metaKey &&
+    !drag &&
+    !document.querySelector("dialog[open]")
+  ) {
+    const el = focusedEv();
+    if (!el) return;
+    e.preventDefault();
+    deleteEvent(el);
+  }
+});
 
 render();
 setInterval(() => {
