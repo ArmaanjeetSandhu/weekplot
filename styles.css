@@ -68,6 +68,13 @@ html {
 *::before,
 *::after {
   box-sizing: inherit;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 body {
   margin: 0;
@@ -312,6 +319,7 @@ legend {
 .col {
   position: relative;
   height: calc(var(--hours) * var(--hh));
+  touch-action: manipulation;
   border-left: 1px solid var(--line);
   background-image:
     linear-gradient(var(--line) 1px, transparent 1px),
@@ -638,10 +646,15 @@ legend {
 .toast {
   position: fixed;
   left: 50%;
+  right: auto;
+  top: auto;
   bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 20px);
   opacity: 0;
   z-index: 60;
+  margin: 0;
+  border: 0;
+  width: fit-content;
   background: var(--ink);
   color: var(--surface);
   padding: 10px 16px;
@@ -652,10 +665,19 @@ legend {
     opacity 0.2s,
     transform 0.2s;
   pointer-events: none;
+  overflow: visible;
   max-width: calc(100% - 32px);
 }
 .toast.show {
   opacity: 1;
+  transform: translate(-50%, 0);
+}
+.toast.top {
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+  transform: translate(-50%, -20px);
+}
+.toast.top.show {
   transform: translate(-50%, 0);
 }
 

@@ -407,13 +407,63 @@ function renderGrid() {
   grid.innerHTML = html;
 }
 
-let toastT;
+let toastT, toastHideT;
+const CAN_POPOVER =
+  typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
+function toastOpen(el) {
+  if (!CAN_POPOVER) return false;
+  try {
+    return el.matches(":popover-open");
+  } catch (err) {
+    return false;
+  }
+}
+function setPopover(el, open) {
+  if (!CAN_POPOVER) return;
+  try {
+    if (open) el.showPopover();
+    else el.hidePopover();
+  } catch (err) {
+    console.warn("Couldn't toggle the toast popover:", err);
+  }
+}
+
+function showToast() {
+  const el = $("toast");
+  clearTimeout(toastHideT);
+  el.classList.toggle("top", !!document.querySelector("dialog[open]"));
+  if (CAN_POPOVER && !toastOpen(el)) {
+    setPopover(el, true);
+    el.getBoundingClientRect();
+  }
+  el.classList.add("show");
+  return el;
+}
+function hideToast() {
+  const el = $("toast");
+  el.classList.remove("show");
+  el.style.pointerEvents = "none";
+  clearTimeout(toastHideT);
+  toastHideT = setTimeout(() => {
+    if (toastOpen(el)) setPopover(el, false);
+  }, 250);
+}
+function raiseToast() {
+  const el = $("toast");
+  if (!el.classList.contains("show")) return;
+  el.classList.toggle("top", !!document.querySelector("dialog[open]"));
+  if (toastOpen(el)) {
+    setPopover(el, false);
+    setPopover(el, true);
+  }
+}
 function toast(msg) {
   const el = $("toast");
   el.textContent = msg;
-  el.classList.add("show");
+  el.style.pointerEvents = "none";
+  showToast();
   clearTimeout(toastT);
-  toastT = setTimeout(() => el.classList.remove("show"), 2400);
+  toastT = setTimeout(hideToast, 2400);
 }
 
 let suppressUntil = 0,
@@ -597,10 +647,11 @@ window.addEventListener("pointerup", (e) => {
   drag = null;
   document.body.style.cursor = "";
   if (d.type === "create") {
-    suppressUntil = performance.now() + 350;
     if (d.sel) d.sel.remove();
-    if (d.moved) openEditor(null, { day: d.day, start: d.a, end: d.b });
-    else newAt(d.day, d.m0);
+    if (d.moved) {
+      suppressUntil = performance.now() + 350;
+      openEditor(null, { day: d.day, start: d.a, end: d.b });
+    }
   } else if (d.type === "move") {
     if (!d.moved) return;
     suppressUntil = performance.now() + 350;
@@ -645,19 +696,21 @@ $("grid").addEventListener("click", (e) => {
   if (performance.now() < suppressUntil) return;
   if (e.target.closest(".rz")) return;
   const evEl = e.target.closest(".ev");
-  if (evEl) {
-    const ev = state.events.find((x) => x.id === evEl.dataset.id);
-    if (ev) openEditor(ev, { day: +evEl.dataset.day });
-    return;
-  }
+  if (!evEl) return;
+  const ev = state.events.find((x) => x.id === evEl.dataset.id);
+  if (ev) openEditor(ev, { day: +evEl.dataset.day });
+});
+
+$("grid").addEventListener("dblclick", (e) => {
+  if (performance.now() < suppressUntil) return;
+  if (e.target.closest(".ev")) return;
   const col = e.target.closest(".col");
-  if (col) {
-    const S = state.settings;
-    newAt(
-      +col.dataset.day,
-      Math.floor(minutesAt(col, e.clientY) / S.snap) * S.snap,
-    );
-  }
+  if (!col) return;
+  const S = state.settings;
+  newAt(
+    +col.dataset.day,
+    Math.floor(minutesAt(col, e.clientY) / S.snap) * S.snap,
+  );
 });
 function newAt(day, m) {
   const S = state.settings;
@@ -828,20 +881,17 @@ function commitForm() {
 $("fSave").addEventListener("click", () => {
   if (!commitForm()) return;
   lastColor = form.color;
+  const days = [...form.days].sort((a, b) => a - b);
+  let msg;
   if (editing) {
-    Object.assign(editing, form, {
-      days: [...form.days].sort((a, b) => a - b),
-    });
-    toast(`Changes saved${hiddenNote(form)}`);
+    Object.assign(editing, form, { days });
+    msg = `Changes saved${hiddenNote(form)}`;
   } else {
-    state.events.push({
-      id: uid(),
-      ...form,
-      days: [...form.days].sort((a, b) => a - b),
-    });
-    toast(`Added ${form.title}${hiddenNote(form)}`);
+    state.events.push({ id: uid(), ...form, days });
+    msg = `Added ${form.title}${hiddenNote(form)}`;
   }
   closeModal("evDlg");
+  toast(msg);
   save();
   render();
 });
@@ -901,21 +951,18 @@ function undoable(msg, fn) {
     esc(msg) +
     ` <button style="margin-left:10px;border:0;background:transparent;color:inherit;text-decoration:underline;font-weight:700;pointer-events:auto" id="undoBtn">Undo</button>`;
   el.style.pointerEvents = "auto";
-  el.classList.add("show");
+  showToast();
   clearTimeout(toastT);
   $("undoBtn").onclick = () => {
     fn();
-    el.classList.remove("show");
-    el.style.pointerEvents = "none";
+    hideToast();
   };
-  toastT = setTimeout(() => {
-    el.classList.remove("show");
-    el.style.pointerEvents = "none";
-  }, 5000);
+  toastT = setTimeout(hideToast, 5000);
 }
 
 function openModal(id) {
   $(id).showModal();
+  raiseToast();
 }
 function closeModal(id) {
   $(id).close();
