@@ -24,6 +24,34 @@ function initTitle() {
   });
 }
 
+const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+
+function softly(update) {
+  if (reduceMotion?.matches) {
+    update();
+    return;
+  }
+  if (document.startViewTransition) {
+    document.startViewTransition(update);
+    return;
+  }
+  update();
+  const board = $("board");
+  board.classList.remove("swap");
+  board.getBoundingClientRect();
+  board.classList.add("swap");
+}
+
+function setLayout(changes) {
+  const S = state.settings;
+  if (Object.entries(changes).every(([k, v]) => S[k] === v)) return;
+  softly(() => {
+    Object.assign(S, changes);
+    save();
+    render();
+  });
+}
+
 function initView() {
   $("addBtn").addEventListener("click", () => {
     const S = state.settings;
@@ -32,22 +60,16 @@ function initView() {
       Math.max(S.startHour * 60, 9 * 60),
     );
   });
-  $("vWeek").addEventListener("click", () => {
-    state.settings.view = "week";
-    save();
-    render();
-  });
-  $("vDay").addEventListener("click", () => {
-    state.settings.view = "day";
-    save();
-    render();
-  });
+  $("vWeek").addEventListener("click", () => setLayout({ view: "week" }));
+  $("vDay").addEventListener("click", () => setLayout({ view: "day" }));
   $("daytabs").addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
-    state.settings.focusDay = +b.dataset.d;
-    save();
-    render();
+    setLayout({ focusDay: +b.dataset.d });
+  });
+  $("board").addEventListener("animationend", (e) => {
+    if (e.target.parentElement === e.currentTarget)
+      e.currentTarget.classList.remove("swap");
   });
 }
 

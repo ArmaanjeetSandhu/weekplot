@@ -14,6 +14,8 @@
   --ev-bg: 16%;
   --ev-ink: 45%;
   --hh: 52px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --display:
     "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif;
@@ -195,6 +197,10 @@ legend {
   font-weight: 700;
   font-size: 0.9375rem;
   color: var(--muted);
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
 }
 .seg button[aria-pressed="true"] {
   background: var(--surface);
@@ -266,6 +272,10 @@ legend {
   font-weight: 700;
   font-size: 0.875rem;
   color: var(--muted);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 .daytabs button[aria-pressed="true"] {
   background: var(--ink);
@@ -274,6 +284,19 @@ legend {
 }
 .scroll {
   overflow-x: auto;
+}
+.board.swap > * {
+  animation: fade-in 0.28s var(--ease-out);
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 .grid {
   display: grid;
@@ -515,6 +538,41 @@ legend {
 .modal::backdrop {
   background: rgba(10, 18, 30, 0.45);
 }
+.modal[open] {
+  animation: modal-in 0.24s var(--ease-out) both;
+}
+.modal[open]::backdrop {
+  animation: backdrop-in 0.24s ease-out both;
+}
+.modal.closing {
+  animation: modal-out 0.16s var(--ease-in) both;
+  pointer-events: none;
+}
+.modal.closing::backdrop {
+  animation: backdrop-out 0.16s ease-in both;
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
 .modal h2 {
   margin: 0 0 14px;
   font-family: var(--display);
@@ -689,6 +747,14 @@ legend {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+  }
+  .board.swap > *,
+  .modal,
+  .modal::backdrop,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 

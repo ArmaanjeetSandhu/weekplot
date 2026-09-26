@@ -13,4 +13,5 @@ export const esc = (s) =>
       })[c],
   );
 
-export const dialogOpen = () => !!document.querySelector("dialog[open]");
+export const dialogOpen = () =>
+  !!document.querySelector("dialog[open]:not(.closing)");
