@@ -106,7 +106,6 @@ export function openEditor(ev, ctx) {
   fillEndSelect(form.start, form.end);
   paintForm();
   openModal("evDlg");
-  setTimeout(() => $("fTitle").focus(), 30);
 }
 
 export function newAt(day, m) {

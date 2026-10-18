@@ -60,7 +60,6 @@ export function initSettings() {
   $("settingsBtn").addEventListener("click", () => {
     paintSettings();
     openModal("setDlg");
-    setTimeout(() => $("sStart").focus(), 30);
   });
   $("sDone").addEventListener("click", () => closeModal("setDlg"));
 

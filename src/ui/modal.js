@@ -37,6 +37,7 @@ export function openModal(id) {
   const d = $(id);
   cancelClose(d);
   if (!d.open) d.showModal();
+  else d.querySelector("[autofocus]")?.focus();
   raiseToast();
 }
 
