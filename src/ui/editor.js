@@ -1,5 +1,6 @@
 import { deleteEvent, update } from "../actions.js";
 import { COLORS, ICONS, MAXDUR, SHORT } from "../constants.js";
+import { weekOrder } from "../core/layout.js";
 import { uid } from "../core/schema.js";
 import { state } from "../core/store.js";
 import { $ } from "./dom.js";
@@ -7,25 +8,22 @@ import { fmt, midnightLabel } from "./format.js";
 import { closeModal, openModal } from "./modal.js";
 import { toast } from "./toast.js";
 
-const TIMES = [];
-for (let m = 0; m <= 1440; m += 5) TIMES.push(m);
-
 let editing = null;
 let form = {};
 let lastColor = "sky";
 
-function fillTimeSelect(sel, val, forEnd) {
-  const opts = TIMES.filter((m) => (forEnd ? m > 0 : m < 1440));
+function fillStartSelect(val) {
+  const opts = [];
+  for (let m = 0; m < 1440; m += 15) opts.push(m);
   if (!opts.includes(val)) {
     opts.push(val);
     opts.sort((a, b) => a - b);
   }
-  sel.innerHTML = opts
-    .filter((m) => m % 15 === 0 || m === val)
-    .map((m) => {
-      const label = m === 1440 ? midnightLabel() : fmt(m);
-      return `<option value="${m}"${m === val ? " selected" : ""}>${label}</option>`;
-    })
+  $("fStart").innerHTML = opts
+    .map(
+      (m) =>
+        `<option value="${m}"${m === val ? " selected" : ""}>${fmt(m)}</option>`,
+    )
     .join("");
 }
 
@@ -52,10 +50,7 @@ function fillEndSelect(start, val) {
 }
 
 function paintForm() {
-  const order =
-    state.settings.weekStart === "sun"
-      ? [6, 0, 1, 2, 3, 4, 5]
-      : [0, 1, 2, 3, 4, 5, 6];
+  const order = weekOrder(state.settings.weekStart);
   $("fDays").innerHTML = order
     .map(
       (d) =>
@@ -102,7 +97,7 @@ export function openEditor(ev, ctx) {
   $("fTitle").value = form.title;
   $("fNote").value = form.note;
   $("fErr").textContent = "";
-  fillTimeSelect($("fStart"), form.start, false);
+  fillStartSelect(form.start);
   fillEndSelect(form.start, form.end);
   paintForm();
   openModal("evDlg");

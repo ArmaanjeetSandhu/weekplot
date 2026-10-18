@@ -26,13 +26,18 @@ export function segmentsFor(events, d) {
   return out;
 }
 
+export function weekOrder(weekStart) {
+  return weekStart === "sun" ? [6, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
+}
+
 export function visibleDays(settings) {
-  let order =
-    settings.weekStart === "sun"
-      ? [6, 0, 1, 2, 3, 4, 5]
-      : [0, 1, 2, 3, 4, 5, 6];
-  if (!settings.weekends) order = order.filter((d) => d < 5);
-  return order;
+  const order = weekOrder(settings.weekStart);
+  return settings.weekends ? order : order.filter((d) => d < 5);
+}
+
+export function visibleFocusDay(settings) {
+  const days = visibleDays(settings);
+  return days.includes(settings.focusDay) ? settings.focusDay : days[0];
 }
 
 export function layoutDay(items) {

@@ -37,9 +37,7 @@ function renderGrid() {
   const S = state.settings,
     grid = $("grid"),
     board = $("board");
-  const days = S.view === "day" ? [S.focusDay] : visibleDays(S);
-  if (S.view === "day" && !visibleDays(S).includes(S.focusDay))
-    S.focusDay = visibleDays(S)[0];
+  const days = visibleDays(S);
   const shown = S.view === "day" ? [S.focusDay] : days;
   const hours = S.endHour - S.startHour;
   board.classList.toggle("dayview", S.view === "day");
@@ -47,7 +45,7 @@ function renderGrid() {
   $("vDay").setAttribute("aria-pressed", S.view === "day");
   $("titleIn").value = state.title;
 
-  $("daytabs").innerHTML = visibleDays(S)
+  $("daytabs").innerHTML = days
     .map(
       (d) =>
         `<button data-d="${d}" aria-pressed="${d === S.focusDay}">${DAYS[d]}</button>`,

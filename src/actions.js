@@ -1,9 +1,11 @@
+import { visibleFocusDay } from "./core/layout.js";
 import { save, setState, snapshot, state } from "./core/store.js";
 import { render } from "./ui/grid.js";
 import { undoable } from "./ui/toast.js";
 
 export function update(mutate, { redraw = true, undo } = {}) {
   mutate(state);
+  state.settings.focusDay = visibleFocusDay(state.settings);
   save();
   if (redraw) render();
   if (undo) undoable(undo.message, () => update(undo.revert));

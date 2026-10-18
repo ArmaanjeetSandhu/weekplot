@@ -5,6 +5,7 @@ import {
   MAXDUR,
   SNAP_STEPS,
 } from "../constants.js";
+import { visibleFocusDay } from "./layout.js";
 import { FormatError, clampInt, parseHHMM, toHHMM, todayIdx } from "./time.js";
 
 export const uid = () => crypto.randomUUID();
@@ -53,6 +54,7 @@ export function sanitize(o) {
   s.weekStart = s.weekStart === "sun" ? "sun" : "mon";
   s.h24 = !!s.h24;
   s.weekends = s.weekends !== false;
+  s.focusDay = visibleFocusDay(s);
   const seenIds = new Set();
   const uniqueId = (raw) => {
     let id = raw ? String(raw) : "";
