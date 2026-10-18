@@ -85,7 +85,7 @@ function initExportMenu() {
     const b = e.target.closest("button");
     if (!b) return;
     closeMenu();
-    doExport(b.dataset.x);
+    doExport(b.dataset.x).catch((err) => console.error("Export failed:", err));
   });
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".menu-wrap")) closeMenu();

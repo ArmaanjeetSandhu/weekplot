@@ -111,6 +111,7 @@ export async function drawPNG() {
   c.width = W * scale;
   c.height = Hh * scale;
   const ctx = c.getContext("2d");
+  if (!ctx) throw new Error("Couldn't get a 2D context for the export canvas");
   ctx.scale(scale, scale);
 
   ctx.fillStyle = "#FFFFFF";

@@ -30,11 +30,19 @@ export async function doExport(kind) {
     download(slug() + ".json", txt, "application/json");
   } else if (kind === "png") {
     toast("Drawing image…");
-    const canvas = await drawPNG();
-    canvas.toBlob((blob) => {
-      if (blob) download(slug() + ".png", blob);
-      else toast("Couldn't create the image. Please try again.");
-    }, "image/png");
+    const failed = (err) => {
+      console.warn("PNG export failed:", err);
+      toast("Couldn't create the image. Please try again.");
+    };
+    try {
+      const canvas = await drawPNG();
+      canvas.toBlob((blob) => {
+        if (blob) download(slug() + ".png", blob);
+        else failed(new Error("canvas.toBlob returned no data"));
+      }, "image/png");
+    } catch (err) {
+      failed(err);
+    }
   }
 }
 
