@@ -48,7 +48,14 @@ export function clearEvents() {
 
 export function replaceWeek(next, message) {
   const prev = snapshot();
+  const replaced = new Set(next.events);
   update(() => setState(next), {
-    undo: { message, revert: () => setState(prev) },
+    undo: {
+      message,
+      revert: (s) => {
+        const added = s.events.filter((ev) => !replaced.has(ev));
+        setState({ ...prev, events: [...prev.events, ...added] });
+      },
+    },
   });
 }
