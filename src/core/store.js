@@ -84,14 +84,43 @@ export async function initStore() {
   return setState(week);
 }
 
-let saveT;
+const SAVE_DELAY = 250;
+
+let saveT = null;
+let saveFailed = false;
+let onSaveError = null;
+
+export function setSaveErrorHandler(fn) {
+  onSaveError = fn;
+}
+
+function writeNow() {
+  saveT = null;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serialize(state)));
+    saveFailed = false;
+  } catch (e) {
+    console.warn("Couldn't save the schedule:", e);
+    if (!saveFailed) {
+      saveFailed = true;
+      onSaveError?.(e);
+    }
+  }
+}
 
 export function save() {
   if (savingBlocked) return;
   clearTimeout(saveT);
-  saveT = setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(serialize(state)));
-    } catch (e) {}
-  }, 250);
+  saveT = setTimeout(writeNow, SAVE_DELAY);
 }
+
+export function flush() {
+  if (saveT === null) return;
+  clearTimeout(saveT);
+  writeNow();
+}
+
+window.addEventListener("pagehide", flush);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flush();
+});
