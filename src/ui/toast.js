@@ -1,17 +1,11 @@
 import { $, dialogOpen, esc } from "./dom.js";
 
-const CAN_POPOVER =
-  typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
+const CAN_POPOVER = "popover" in HTMLElement.prototype;
 
 let toastT, toastHideT;
 
 function isOpen(el) {
-  if (!CAN_POPOVER) return false;
-  try {
-    return el.matches(":popover-open");
-  } catch (err) {
-    return false;
-  }
+  return CAN_POPOVER && el.matches(":popover-open");
 }
 
 function setPopover(el, open) {

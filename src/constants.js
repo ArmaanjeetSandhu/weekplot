@@ -1,4 +1,4 @@
-export const STORAGE_KEY = "weekplot:v1";
+export const STORAGE_KEY = "weekplot";
 export const THEME_KEY = "weekplot:theme";
 
 export const DAYS = [

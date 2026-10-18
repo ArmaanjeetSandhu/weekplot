@@ -1,9 +1,9 @@
+import { update } from "../actions.js";
 import { doExport, importFromFile } from "../export/file.js";
-import { save, state } from "../core/store.js";
+import { state } from "../core/store.js";
 import { todayIdx } from "../core/time.js";
 import { $ } from "./dom.js";
 import { newAt } from "./editor.js";
-import { render } from "./grid.js";
 
 function closeMenu() {
   $("exportMenu").classList.remove("open");
@@ -12,30 +12,33 @@ function closeMenu() {
 
 function initTitle() {
   $("titleIn").addEventListener("input", () => {
-    state.title = $("titleIn").value;
-    save();
+    update(
+      (s) => {
+        s.title = $("titleIn").value;
+      },
+      { redraw: false },
+    );
   });
   $("titleIn").addEventListener("blur", () => {
-    if (!state.title.trim()) {
-      state.title = "My week";
-      $("titleIn").value = state.title;
-      save();
-    }
+    if (state.title.trim()) return;
+    update((s) => {
+      s.title = "My week";
+    });
   });
 }
 
-const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
-function softly(update) {
-  if (reduceMotion?.matches) {
-    update();
+function softly(apply) {
+  if (reduceMotion.matches) {
+    apply();
     return;
   }
   if (document.startViewTransition) {
-    document.startViewTransition(update);
+    document.startViewTransition(apply);
     return;
   }
-  update();
+  apply();
   const board = $("board");
   board.classList.remove("swap");
   board.getBoundingClientRect();
@@ -45,11 +48,7 @@ function softly(update) {
 function setLayout(changes) {
   const S = state.settings;
   if (Object.entries(changes).every(([k, v]) => S[k] === v)) return;
-  softly(() => {
-    Object.assign(S, changes);
-    save();
-    render();
-  });
+  softly(() => update((s) => Object.assign(s.settings, changes)));
 }
 
 function initView() {

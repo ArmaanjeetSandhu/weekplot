@@ -73,7 +73,6 @@ export function sanitize(o) {
 
 export function serialize(week) {
   return {
-    app: "weekplot",
     title: week.title,
     settings: week.settings,
     events: week.events.map((ev) => ({

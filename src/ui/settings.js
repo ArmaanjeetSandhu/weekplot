@@ -1,9 +1,8 @@
-import { clearEvents, replaceWeek } from "../actions.js";
+import { clearEvents, replaceWeek, update } from "../actions.js";
 import { SAMPLE_FILE } from "../constants.js";
-import { loadSample, save, state } from "../core/store.js";
+import { loadSample, state } from "../core/store.js";
 import { $ } from "./dom.js";
 import { fmtHour, midnightLabel } from "./format.js";
-import { render } from "./grid.js";
 import { closeModal, openModal } from "./modal.js";
 import { toast } from "./toast.js";
 import { getTheme, onThemeChange, setTheme } from "./theme.js";
@@ -35,10 +34,8 @@ function paintSettings() {
   $("thDark").setAttribute("aria-pressed", th === "dark");
 }
 
-function setS(k, v) {
-  state.settings[k] = v;
-  save();
-  render();
+function setS(changes) {
+  update((s) => Object.assign(s.settings, changes));
   paintSettings();
 }
 
@@ -68,27 +65,27 @@ export function initSettings() {
   $("sDone").addEventListener("click", () => closeModal("setDlg"));
 
   $("sStart").addEventListener("change", () => {
-    const v = +$("sStart").value;
-    if (v >= state.settings.endHour)
-      state.settings.endHour = Math.min(24, v + 1);
-    setS("startHour", v);
+    const v = +$("sStart").value,
+      end = state.settings.endHour;
+    setS({ startHour: v, endHour: v >= end ? Math.min(24, v + 1) : end });
   });
   $("sEnd").addEventListener("change", () => {
-    const v = +$("sEnd").value;
-    if (v <= state.settings.startHour)
-      state.settings.startHour = Math.max(0, v - 1);
-    setS("endHour", v);
+    const v = +$("sEnd").value,
+      start = state.settings.startHour;
+    setS({ endHour: v, startHour: v <= start ? Math.max(0, v - 1) : start });
   });
-  $("s12").addEventListener("click", () => setS("h24", false));
-  $("s24").addEventListener("click", () => setS("h24", true));
-  $("sMon").addEventListener("click", () => setS("weekStart", "mon"));
-  $("sSun").addEventListener("click", () => setS("weekStart", "sun"));
-  $("sWkOn").addEventListener("click", () => setS("weekends", true));
-  $("sWkOff").addEventListener("click", () => setS("weekends", false));
+  $("s12").addEventListener("click", () => setS({ h24: false }));
+  $("s24").addEventListener("click", () => setS({ h24: true }));
+  $("sMon").addEventListener("click", () => setS({ weekStart: "mon" }));
+  $("sSun").addEventListener("click", () => setS({ weekStart: "sun" }));
+  $("sWkOn").addEventListener("click", () => setS({ weekends: true }));
+  $("sWkOff").addEventListener("click", () => setS({ weekends: false }));
   $("sLen").addEventListener("change", () =>
-    setS("clickLen", +$("sLen").value),
+    setS({ clickLen: +$("sLen").value }),
   );
-  $("sSnap").addEventListener("change", () => setS("snap", +$("sSnap").value));
+  $("sSnap").addEventListener("change", () =>
+    setS({ snap: +$("sSnap").value }),
+  );
 
   $("sClear").addEventListener("click", () => {
     if (!state.events.length) {

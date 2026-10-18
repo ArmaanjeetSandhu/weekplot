@@ -1,10 +1,9 @@
-import { deleteEvent } from "../actions.js";
+import { deleteEvent, update } from "../actions.js";
 import { COLORS, ICONS, MAXDUR, SHORT } from "../constants.js";
 import { uid } from "../core/schema.js";
-import { save, state } from "../core/store.js";
+import { state } from "../core/store.js";
 import { $ } from "./dom.js";
 import { fmt, midnightLabel } from "./format.js";
-import { render } from "./grid.js";
 import { closeModal, openModal } from "./modal.js";
 import { toast } from "./toast.js";
 
@@ -151,18 +150,13 @@ function onSave() {
   if (!commitForm()) return;
   lastColor = form.color;
   const days = [...form.days].sort((a, b) => a - b);
-  let msg;
-  if (editing) {
-    Object.assign(editing, form, { days });
-    msg = `Changes saved${hiddenNote(form)}`;
-  } else {
-    state.events.push({ id: uid(), ...form, days });
-    msg = `Added ${form.title}${hiddenNote(form)}`;
-  }
+  const ev = editing;
   closeModal("evDlg");
-  toast(msg);
-  save();
-  render();
+  update((s) => {
+    if (ev) Object.assign(ev, form, { days });
+    else s.events.push({ id: uid(), ...form, days });
+  });
+  toast((ev ? "Changes saved" : `Added ${form.title}`) + hiddenNote(form));
 }
 
 function onDelete() {
@@ -180,10 +174,10 @@ function onDuplicate() {
     title: form.title + " (copy)",
     days: [...form.days],
   };
-  state.events.push(copy);
   closeModal("evDlg");
-  save();
-  render();
+  update((s) => {
+    s.events.push(copy);
+  });
   openEditor(copy, {});
 }
 

@@ -23,7 +23,7 @@ export function evKey(el) {
 
 export function focusedEv() {
   const a = document.activeElement;
-  return a?.matches?.("#grid .ev[data-id]") ? a : null;
+  return a?.matches("#grid .ev[data-id]") ? a : null;
 }
 
 export function render() {

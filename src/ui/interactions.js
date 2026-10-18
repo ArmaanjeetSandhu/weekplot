@@ -1,5 +1,6 @@
 import { DAYS, MAXDUR } from "../constants.js";
-import { save, state } from "../core/store.js";
+import { update } from "../actions.js";
+import { state } from "../core/store.js";
 import { $ } from "./dom.js";
 import { newAt, openEditor } from "./editor.js";
 import { fmt, rangeOf } from "./format.js";
@@ -223,16 +224,18 @@ function dropMove(d) {
   const ev = d.ev,
     ncs = d.cs + d.dm;
   const newDay = ncs < 0 ? (d.day + 6) % 7 : d.day;
-  ev.start = ncs < 0 ? ncs + 1440 : ncs;
-  ev.end = ev.start + d.dur;
-  if (newDay !== d.origDay && !ev.days.includes(newDay)) {
-    ev.days = ev.days
-      .map((x) => (x === d.origDay ? newDay : x))
-      .sort((a, b) => a - b);
-  } else if (newDay !== d.origDay)
-    toast(`${ev.title} already happens on ${DAYS[newDay]}`);
-  save();
-  render();
+  const start = ncs < 0 ? ncs + 1440 : ncs;
+  const dayMoved = newDay !== d.origDay,
+    dayTaken = dayMoved && ev.days.includes(newDay);
+  update(() => {
+    ev.start = start;
+    ev.end = start + d.dur;
+    if (dayMoved && !dayTaken)
+      ev.days = ev.days
+        .map((x) => (x === d.origDay ? newDay : x))
+        .sort((a, b) => a - b);
+  });
+  if (dayTaken) toast(`${ev.title} already happens on ${DAYS[newDay]}`);
 }
 
 function onPointerUp() {
@@ -246,18 +249,18 @@ function onPointerUp() {
     dropMove(d);
   } else if (d.type === "resize") {
     suppressUntil = performance.now() + 350;
-    if (d.newEnd) {
-      d.ev.end = d.newEnd;
-      save();
-    }
-    render();
+    if (d.newEnd != null && d.newEnd !== d.ev.end)
+      update(() => {
+        d.ev.end = d.newEnd;
+      });
+    else render();
   } else if (d.type === "resizeTop") {
     suppressUntil = performance.now() + 350;
-    if (d.newStart != null && d.newStart !== d.ev.start) {
-      d.ev.start = d.newStart;
-      save();
-    }
-    render();
+    if (d.newStart != null && d.newStart !== d.ev.start)
+      update(() => {
+        d.ev.start = d.newStart;
+      });
+    else render();
   }
 }
 
