@@ -39,7 +39,10 @@ function parseDay(d, title) {
 export function sanitize(o) {
   if (!o || typeof o !== "object" || !Array.isArray(o.events))
     throw new Error("bad");
-  const s = Object.assign(defaults(), o.settings || {});
+  const s = defaults();
+  const raw = o.settings;
+  if (raw && typeof raw === "object" && !Array.isArray(raw))
+    for (const k of Object.keys(s)) if (Object.hasOwn(raw, k)) s[k] = raw[k];
   s.startHour = clampInt(s.startHour, 0, 23, 7);
   s.endHour = clampInt(s.endHour, 1, 24, 21);
   if (s.endHour <= s.startHour) s.endHour = Math.min(24, s.startHour + 1);
