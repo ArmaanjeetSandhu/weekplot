@@ -50,13 +50,13 @@ export function raiseToast() {
   }
 }
 
-export function toast(msg) {
+export function toast(msg, ms = 2400) {
   const el = $("toast");
   el.textContent = msg;
   el.style.pointerEvents = "none";
   showToast();
   clearTimeout(toastT);
-  toastT = setTimeout(hideToast, 2400);
+  toastT = setTimeout(hideToast, ms);
 }
 
 export function undoable(msg, fn) {
