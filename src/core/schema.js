@@ -27,6 +27,15 @@ export function blankWeek() {
   return { title: "My week", settings: defaults(), events: [] };
 }
 
+function parseDay(d, title) {
+  if (typeof d === "string" && /^\s*[0-6]\s*$/.test(d)) return Number(d);
+  if (Number.isInteger(d) && d >= 0 && d <= 6) return d;
+  throw new FormatError(
+    `"${title}" has day ${JSON.stringify(d)}. ` +
+      `Use whole numbers from 0 (Monday) to 6 (Sunday).`,
+  );
+}
+
 export function sanitize(o) {
   if (!o || typeof o !== "object" || !Array.isArray(o.events))
     throw new Error("bad");
@@ -51,7 +60,7 @@ export function sanitize(o) {
       );
     if (end < start) end += 1440;
     const days = Array.isArray(ev.days)
-      ? [...new Set(ev.days.map(Number).filter((d) => d >= 0 && d <= 6))]
+      ? [...new Set(ev.days.map((d) => parseDay(d, name)))]
       : [];
     return {
       id: String(ev.id || uid()),
