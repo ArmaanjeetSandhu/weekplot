@@ -119,10 +119,7 @@ export async function drawPNG() {
   ctx.fillStyle = INK;
   ctx.font = TITLE_FONT;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(fitText(ctx, state.title, W - pad * 2 - 300), pad, pad + 44);
-  ctx.fillStyle = MUTED;
-  ctx.font = '400 16px "Atkinson Hyperlegible", system-ui, sans-serif';
-  ctx.textAlign = "left";
+  ctx.fillText(fitText(ctx, state.title, W - pad * 2), pad, pad + 44);
 
   const gx = pad + timeW,
     gy = pad + titleH,

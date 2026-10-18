@@ -14,9 +14,6 @@ function initRefresh() {
   setInterval(() => {
     if (!isDragging() && !dialogOpen()) render();
   }, 60000);
-  window.addEventListener("resize", () => {
-    if (!isDragging()) render();
-  });
 }
 
 function saveErrorMessage(e) {

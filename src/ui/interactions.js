@@ -150,9 +150,13 @@ function moveEvent(e, H, base, maxM) {
     drag.el.parentNode.appendChild(g);
     document.body.style.cursor = "grabbing";
   }
-  const dur = drag.dur;
-  const dm = Math.round((((e.clientY - drag.y0) / H) * 60) / 15) * 15;
-  const ns = Math.max(Math.min(0, 15 - dur), Math.min(1440 - 15, drag.cs + dm));
+  const dur = drag.dur,
+    step = state.settings.snap;
+  const dm = snapM(((e.clientY - drag.y0) / H) * 60);
+  const ns = Math.max(
+    Math.min(0, step - dur),
+    Math.min(1440 - step, drag.cs + dm),
+  );
   drag.dm = ns - drag.cs;
   const under = document.elementFromPoint(e.clientX, e.clientY),
     tcol = under?.closest(".col");

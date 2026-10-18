@@ -50,6 +50,13 @@ export function sanitize(o) {
   s.weekStart = s.weekStart === "sun" ? "sun" : "mon";
   s.h24 = !!s.h24;
   s.weekends = s.weekends !== false;
+  const seenIds = new Set();
+  const uniqueId = (raw) => {
+    let id = raw ? String(raw) : "";
+    while (!id || seenIds.has(id)) id = uid();
+    seenIds.add(id);
+    return id;
+  };
   const events = o.events.map((ev) => {
     const name = String(ev.title || "Untitled").slice(0, 80);
     const start = parseHHMM(ev.start, "start", name);
@@ -63,7 +70,7 @@ export function sanitize(o) {
       ? [...new Set(ev.days.map((d) => parseDay(d, name)))]
       : [];
     return {
-      id: String(ev.id || uid()),
+      id: uniqueId(ev.id),
       title: name,
       days: days.length ? days : [0],
       start,
