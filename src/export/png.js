@@ -74,13 +74,31 @@ function drawEvent(ctx, it, geom) {
   ctx.restore();
 }
 
+const TITLE_FONT = '800 40px "Bricolage Grotesque", system-ui, sans-serif',
+  DAY_FONT = '700 18px "Bricolage Grotesque", system-ui, sans-serif';
+
+async function loadCanvasFonts(days) {
+  if (!document.fonts?.load) return;
+  const evText = state.events
+    .map((ev) => [ev.icon, ev.title, ev.note, range(ev)].join(" "))
+    .join(" ");
+  const loads = [
+    [TITLE_FONT, state.title],
+    [DAY_FONT, days.map((d) => DAYS[d]).join(" ")],
+    ['700 15px "Atkinson Hyperlegible"', evText],
+    ['400 13px "Atkinson Hyperlegible"', evText + " 0123456789 AMPM:"],
+  ].map(([font, text]) =>
+    document.fonts.load(font, text || " ").catch(() => {}),
+  );
+  await Promise.all(loads);
+  await document.fonts.ready;
+}
+
 export async function drawPNG() {
-  try {
-    await document.fonts.ready;
-  } catch (e) {}
   const S = state.settings,
     days = visibleDays(S),
     hours = S.endHour - S.startHour;
+  await loadCanvasFonts(days);
   const W = 1600,
     pad = 48,
     timeW = 84,
@@ -98,7 +116,7 @@ export async function drawPNG() {
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, W, Hh);
   ctx.fillStyle = INK;
-  ctx.font = '800 40px "Bricolage Grotesque", system-ui, sans-serif';
+  ctx.font = TITLE_FONT;
   ctx.textBaseline = "alphabetic";
   ctx.fillText(fitText(ctx, state.title, W - pad * 2 - 300), pad, pad + 44);
   ctx.fillStyle = MUTED;
@@ -111,7 +129,7 @@ export async function drawPNG() {
     gh = hours * hourH;
 
   ctx.fillStyle = INK;
-  ctx.font = '700 18px "Bricolage Grotesque", system-ui, sans-serif';
+  ctx.font = DAY_FONT;
   days.forEach((d, i) => ctx.fillText(DAYS[d], gx + i * colW + 12, gy + 32));
 
   const top = gy + headH;
