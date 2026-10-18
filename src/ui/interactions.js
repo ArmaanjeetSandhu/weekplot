@@ -225,17 +225,20 @@ function dropMove(d) {
     ncs = d.cs + d.dm;
   const newDay = ncs < 0 ? (d.day + 6) % 7 : d.day;
   const start = ncs < 0 ? ncs + 1440 : ncs;
-  const dayMoved = newDay !== d.origDay,
-    dayTaken = dayMoved && ev.days.includes(newDay);
+  const dayMoved = newDay !== d.origDay;
+  if (dayMoved && ev.days.includes(newDay)) {
+    render();
+    toast(`${ev.title} already happens on ${DAYS[newDay]}`);
+    return;
+  }
   update(() => {
     ev.start = start;
     ev.end = start + d.dur;
-    if (dayMoved && !dayTaken)
+    if (dayMoved)
       ev.days = ev.days
         .map((x) => (x === d.origDay ? newDay : x))
         .sort((a, b) => a - b);
   });
-  if (dayTaken) toast(`${ev.title} already happens on ${DAYS[newDay]}`);
 }
 
 function onPointerUp() {
